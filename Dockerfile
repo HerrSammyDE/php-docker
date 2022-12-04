@@ -1,4 +1,4 @@
-FROM php:8.1.5-fpm-alpine
+FROM php:8.0.3-fpm-alpine
 
 WORKDIR /var/www
 
@@ -7,6 +7,7 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 RUN install-php-extensions \
+    redis \
     bcmath \
     exif \
     gd \
