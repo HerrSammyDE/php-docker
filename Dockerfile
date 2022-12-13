@@ -17,6 +17,8 @@ RUN install-php-extensions \
     zip \
     calendar \
     && rm /usr/local/bin/install-php-extensions
+    
+RUN docker-php-ext-install calendar && docker-php-ext-configure calendar
 
 RUN apk add nginx git
 
