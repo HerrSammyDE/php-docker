@@ -15,6 +15,7 @@ RUN install-php-extensions \
     opcache \
     pdo_mysql \
     zip \
+    calendar \
     && rm /usr/local/bin/install-php-extensions
 
 RUN apk add nginx git
