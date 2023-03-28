@@ -45,7 +45,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
 RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/* /tmp/* /var/cache/apt/*
 
 # Füge den Laravel-Cronjob hinzu
-RUN { crontab -l; echo "* * * * * php /var/www/artisan schedule:run >/dev/null 2>&1"; } | crontab -
+RUN (crontab -l -u www-data 2>/dev/null; echo "* * * * * php /var/www/artisan schedule:run >/dev/null 2>&1") | crontab -u www-data -
 
 # Setze das Arbeitsverzeichnis
 WORKDIR /var/www
