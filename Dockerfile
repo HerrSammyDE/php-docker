@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libpcre3-dev \
     libcurl4-openssl-dev \
+    nano \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
