@@ -41,7 +41,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-enable redis
 
 # Installiere Supervisor
-RUN apk add --update supervisor && rm -rf /tmp/* /var/cache/apk/*
+RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/* /tmp/* /var/cache/apt/*
 
 # Füge den Laravel-Cronjob hinzu
 RUN { crontab -l; echo "* * * * * php /var/www/artisan schedule:run >/dev/null 2>&1"; } | crontab -
