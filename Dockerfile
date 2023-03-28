@@ -5,6 +5,7 @@ FROM php:8.0-fpm
 RUN apt-get update && apt-get install -y \
     curl \
     git \
+    nano \
     unzip \
     nginx \
     cron \
@@ -21,7 +22,6 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libpcre3-dev \
     libcurl4-openssl-dev \
-    nano \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -52,19 +52,19 @@ RUN (crontab -l -u www-data 2>/dev/null; echo "* * * * * php /var/www/artisan sc
 WORKDIR /var/www
 
 # Verschiebe die Produktionsversion der php.ini-Datei
-#RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 # Kopiere die benutzerdefinierte entrypoint.sh und setze die Ausführungsrechte
 COPY ./entrypoint.sh /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint
 
 # Kopiere die benutzerdefinierte PHP-FPM-Konfigurationsdatei
-#COPY ./web/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ./web/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Kopiere die benutzerdefinierten Konfigurationsdateien
-#ADD web/nginx.conf /etc/nginx/nginx.conf
-#COPY web/sites/* /etc/nginx/conf.d/
-#COPY ./web/php.ini /usr/local/etc/php/php.ini
+ADD web/nginx.conf /etc/nginx/nginx.conf
+COPY web/sites/* /etc/nginx/conf.d/
+COPY ./web/php.ini /usr/local/etc/php/php.ini
 
 # Füge die EXPOSE-Anweisung hinzu
 EXPOSE 80
