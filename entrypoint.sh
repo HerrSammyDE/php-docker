@@ -14,4 +14,4 @@ fi
 # Starte die erforderlichen Dienste im Hintergrund
 exec "$@" &
 exec nginx &
-exec crond -f
+exec cron -f
