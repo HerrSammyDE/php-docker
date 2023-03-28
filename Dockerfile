@@ -1,41 +1,71 @@
-FROM php:8.0.3-fpm-alpine
+# Wähle das PHP-Image mit der gewünschten Version
+FROM php:8.0-fpm
 
-WORKDIR /var/www
+# Aktualisiere die Paketliste und installiere Abhängigkeiten
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip \
+    nginx \
+    libzip-dev \
+    libpng-dev \
+    libxml2-dev \
+    libonig-dev \
+    libgmp-dev \
+    libxslt1-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libexif-dev \
+    libwebp-dev \
+    libjpeg-dev \
+    libpcre3-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+# Installiere die PHP-Erweiterungen
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install -j$(nproc) bcmath \
+    && docker-php-ext-install -j$(nproc) exif \
+    && docker-php-ext-install -j$(nproc) mbstring \
+    && docker-php-ext-install -j$(nproc) xml \
+    && docker-php-ext-install -j$(nproc) curl \
+    && docker-php-ext-install -j$(nproc) zip \
+    && docker-php-ext-install -j$(nproc) mysqli \
+    && docker-php-ext-install -j$(nproc) pdo_mysql \
+    && docker-php-ext-install -j$(nproc) opcache \
+    && docker-php-ext-install -j$(nproc) calendar \
+    && docker-php-ext-install -j$(nproc) gmp \
+    && pecl install redis \
+    && docker-php-ext-enable redis
 
-RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+# Installiere Supervisor
+RUN apk add --update supervisor && rm -rf /tmp/* /var/cache/apk/*
 
-RUN install-php-extensions \
-    redis \
-    bcmath \
-    exif \
-    gd \
-    gmp \
-    opcache \
-    pdo_mysql \
-    zip \
-    calendar \
-    && rm /usr/local/bin/install-php-extensions
-    
-RUN docker-php-ext-install calendar && docker-php-ext-configure calendar
-
-RUN apk add nginx git
-
+# Füge den Laravel-Cronjob hinzu
 RUN { crontab -l; echo "* * * * * php /var/www/artisan schedule:run >/dev/null 2>&1"; } | crontab -
 
+# Setze das Arbeitsverzeichnis
+WORKDIR /var/www
+
+# Verschiebe die Produktionsversion der php.ini-Datei
+RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
+
+# Kopiere die benutzerdefinierte entrypoint.sh und setze die Ausführungsrechte
 COPY ./entrypoint.sh /usr/local/bin/php-entrypoint
 RUN chmod +x /usr/local/bin/php-entrypoint
+
+# Kopiere die benutzerdefinierte PHP-FPM-Konfigurationsdatei
 COPY ./web/www.conf /usr/local/etc/php-fpm.d/www.conf
 
-EXPOSE 80
-
+# Kopiere die benutzerdefinierten Konfigurationsdateien
 ADD web/nginx.conf /etc/nginx/nginx.conf
 COPY web/sites/* /etc/nginx/conf.d/
-
 COPY ./web/php.ini /usr/local/etc/php/php.ini
 
-RUN apk add --update supervisor && rm  -rf /tmp/* /var/cache/apk/*
+# Füge die EXPOSE-Anweisung hinzu
+EXPOSE 80
 
+# Füge die ENTRYPOINT und CMD-Anweisungen hinzu
 ENTRYPOINT ["php-entrypoint"]
 CMD ["php-fpm", "-R"]
